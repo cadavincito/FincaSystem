@@ -4,7 +4,7 @@ import speech_recognition as sr
 from PIL import Image
 
 # Configuración MQTT
-def on_connect(client, userdata, flags, rc):
+#def on_connect(client, userdata, flags, rc):
    # client.subscribe("casa/proximidad")
 
 #client = mqtt.Client()
