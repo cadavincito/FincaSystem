@@ -41,7 +41,7 @@ st.markdown(
     /* Ajustar el contenedor principal */
     .main .block-container {
         max-width: 800px;
-        margin: auto;
+        margin: 100px;
         padding: 20px;
     }
     </style>
