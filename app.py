@@ -1,10 +1,49 @@
 import streamlit as st
 import requests
 
-# Función simulada para comunicación con Wokwi (se reemplazaría con una API real)
+# Función simulada para comunicación con Wokwi
 def enviar_a_wokwi(dispositivo, accion, valor=None):
     st.write(f"Acción simulada en Wokwi: {dispositivo} - {accion} - {valor if valor else ''}")
     return {"estado": "éxito"}
+
+# Inyectar CSS personalizado para centrar elementos
+st.markdown(
+    """
+    <style>
+    /* Centrar contenedores de Streamlit */
+    .stButton, .stTextInput, .stSlider, .stRadio, .stMarkdown {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        margin: auto;
+    }
+    /* Centrar columnas */
+    .stColumn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    /* Ajustar el ancho de los contenedores para mejor apariencia */
+    .stButton > button, .stTextInput > div, .stSlider > div, .stRadio > div {
+        width: 50%;
+        max-width: 500px;
+        margin: auto;
+    }
+    /* Centrar los encabezados */
+    h1, h2, h3 {
+        text-align: center;
+    }
+    /* Ajustar el contenedor principal */
+    .main .block-container {
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Configuración de la aplicación
 st.set_page_config(page_title="Sistema de Control de Finca", layout="wide")
