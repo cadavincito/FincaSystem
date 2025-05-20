@@ -1,10 +1,8 @@
 import streamlit as st
 import requests
 
-# Función simulada para comunicación con Wokwi
-def enviar_a_wokwi(dispositivo, accion, valor=None):
-    st.write(f"Acción simulada en Wokwi: {dispositivo} - {accion} - {valor if valor else ''}")
-    return {"estado": "éxito"}
+# Configuración de la aplicación (DEBE SER EL PRIMER COMANDO DE STREAMLIT)
+st.set_page_config(page_title="Sistema de Control de Finca", layout="wide")
 
 # Inyectar CSS personalizado para centrar elementos
 st.markdown(
@@ -45,8 +43,10 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Configuración de la aplicación
-st.set_page_config(page_title="Sistema de Control de Finca", layout="wide")
+# Función simulada para comunicación con Wokwi
+def enviar_a_wokwi(dispositivo, accion, valor=None):
+    st.write(f"Acción simulada en Wokwi: {dispositivo} - {accion} - {valor if valor else ''}")
+    return {"estado": "éxito"}
 
 # Barra lateral para navegación
 pagina = st.sidebar.selectbox("Selecciona la Página de Control", ["Controles Externos", "Controles Internos"])
