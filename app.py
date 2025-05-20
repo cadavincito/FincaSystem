@@ -23,8 +23,14 @@ st.markdown(
         align-items: center;
     }
     /* Ajustar el ancho de los contenedores para mejor apariencia */
-    .stButton > button, .stTextInput > div, .stSlider > div, .stRadio > div {
+    .stTextInput > div, .stSlider > div, .stRadio > div {
         width: 50%;
+        max-width: 500px;
+        margin: auto;
+    }
+
+    .stButton > button{
+        width: 100%;
         max-width: 500px;
         margin: auto;
     }
