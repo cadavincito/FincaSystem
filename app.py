@@ -1,124 +1,124 @@
 import streamlit as st
 import requests
 
-# Simulated Wokwi API call (replace with actual Wokwi IoT communication)
-def send_to_wokwi(device, action, value=None):
-    st.write(f"Wokwi action: {device} - {action} - {value if value else ''}")
-    return {"status": "success"}
+# Función simulada para comunicación con Wokwi (se reemplazaría con una API real)
+def enviar_a_wokwi(dispositivo, accion, valor=None):
+    st.write(f"Acción simulada en Wokwi: {dispositivo} - {accion} - {valor if valor else ''}")
+    return {"estado": "éxito"}
 
-# App configuration
-st.set_page_config(page_title="Farm Control System", layout="wide")
+# Configuración de la aplicación
+st.set_page_config(page_title="Sistema de Control de Finca", layout="wide")
 
-# Sidebar navigation
-page = st.sidebar.selectbox("Select Control Page", ["External Controls", "Internal Controls"])
+# Barra lateral para navegación
+pagina = st.sidebar.selectbox("Selecciona la Página de Control", ["Controles Externos", "Controles Internos"])
 
-# External Controls Page
-if page == "External Controls":
-    st.title("External Farm Controls")
+# Página de Controles Externos
+if pagina == "Controles Externos":
+    st.title("Controles Externos de la Finca")
     
-    # Main Gate
-    st.header("Main Gate")
+    # Puerta Principal
+    st.header("Puerta Principal")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Open Gate"):
-            send_to_wokwi("gate_servo", "open")
-            st.success("Main gate opened!")
+        if st.button("Abrir Puerta"):
+            enviar_a_wokwi("puerta_servo", "abrir")
+            st.success("¡Puerta principal abierta!")
     with col2:
-        if st.button("Close Gate"):
-            send_to_wokwi("gate_servo", "close")
-            st.success("Main gate closed!")
+        if st.button("Cerrar Puerta"):
+            enviar_a_wokwi("puerta_servo", "cerrar")
+            st.success("¡Puerta principal cerrada!")
     
-    # Electric Fence
-    st.header("Electric Fence")
-    fence_status = st.radio("Fence Status", ["On", "Off"], index=1)
-    fence_power = st.slider("Fence Power Level", 0, 100, 50)
-    if st.button("Apply Fence Settings"):
-        action = "on" if fence_status == "On" else "off"
-        send_to_wokwi("electric_fence", action, fence_power)
-        st.success(f"Electric fence {action}, power set to {fence_power}%")
+    # Cerca Eléctrica
+    st.header("Cerca Eléctrica")
+    estado_cerca = st.radio("Estado de la Cerca", ["Encendida", "Apagada"], index=1)
+    potencia_cerca = st.slider("Nivel de Potencia de la Cerca", 0, 100, 50)
+    if st.button("Aplicar Configuración de la Cerca"):
+        accion = "encender" if estado_cerca == "Encendida" else "apagar"
+        enviar_a_wokwi("cerca_electrica", accion, potencia_cerca)
+        st.success(f"Cerca eléctrica {accion}, potencia ajustada a {potencia_cerca}%")
     
-    # External Alarm
-    st.header("External Alarm")
+    # Alarma Externa
+    st.header("Alarma Externa")
     col3, col4 = st.columns(2)
     with col3:
-        if st.button("Activate External Alarm"):
-            send_to_wokwi("external_alarm", "on")
-            st.success("External alarm activated!")
+        if st.button("Activar Alarma Externa"):
+            enviar_a_wokwi("alarma_externa", "encender")
+            st.success("¡Alarma externa activada!")
     with col4:
-        if st.button("Deactivate External Alarm"):
-            send_to_wokwi("external_alarm", "off")
-            st.success("External alarm deactivated!")
+        if st.button("Desactivar Alarma Externa"):
+            enviar_a_wokwi("alarma_externa", "apagar")
+            st.success("¡Alarma externa desactivada!")
     
-    # Voice Command Simulation
-    st.header("Voice Command (Text Simulation)")
-    voice_command = st.text_input("Enter voice command (e.g., 'open gate', 'turn on fence')")
-    if st.button("Execute Voice Command"):
-        command = voice_command.lower()
-        if command == "open gate":
-            send_to_wokwi("gate_servo", "open")
-            st.success("Voice command: Main gate opened!")
-        elif command == "close gate":
-            send_to_wokwi("gate_servo", "close")
-            st.success("Voice command: Main gate closed!")
-        elif command == "turn on fence":
-            send_to_wokwi("electric_fence", "on", 50)
-            st.success("Voice command: Electric fence turned on!")
-        elif command == "turn off fence":
-            send_to_wokwi("electric_fence", "off")
-            st.success("Voice command: Electric fence turned off!")
-        elif command == "activate external alarm":
-            send_to_wokwi("external_alarm", "on")
-            st.success("Voice command: External alarm activated!")
-        elif command == "deactivate external alarm":
-            send_to_wokwi("external_alarm", "off")
-            st.success("Voice command: External alarm deactivated!")
+    # Simulación de Comando por Voz
+    st.header("Comando por Voz (Simulación por Texto)")
+    comando_voz = st.text_input("Ingresa el comando por voz (ej., 'abrir puerta', 'encender cerca')")
+    if st.button("Ejecutar Comando por Voz"):
+        comando = comando_voz.lower()
+        if comando == "abrir puerta":
+            enviar_a_wokwi("puerta_servo", "abrir")
+            st.success("Comando por voz: ¡Puerta principal abierta!")
+        elif comando == "cerrar puerta":
+            enviar_a_wokwi("puerta_servo", "cerrar")
+            st.success("Comando por voz: ¡Puerta principal cerrada!")
+        elif comando == "encender cerca":
+            enviar_a_wokwi("cerca_electrica", "encender", 50)
+            st.success("Comando por voz: ¡Cerca eléctrica encendida!")
+        elif comando == "apagar cerca":
+            enviar_a_wokwi("cerca_electrica", "apagar")
+            st.success("Comando por voz: ¡Cerca eléctrica apagada!")
+        elif comando == "activar alarma externa":
+            enviar_a_wokwi("alarma_externa", "encender")
+            st.success("Comando por voz: ¡Alarma externa activada!")
+        elif comando == "desactivar alarma externa":
+            enviar_a_wokwi("alarma_externa", "apagar")
+            st.success("Comando por voz: ¡Alarma externa desactivada!")
         else:
-            st.error("Unknown voice command")
+            st.error("Comando por voz desconocido")
 
-# Internal Controls Page
+# Página de Controles Internos
 else:
-    st.title("Internal Farm Controls")
+    st.title("Controles Internos de la Finca")
     
-    # Internal Alarm
-    st.header("Internal Alarm")
+    # Alarma Interna
+    st.header("Alarma Interna")
     col1, col2 = st.columns(2)
     with col1:
-        if st.button("Activate Internal Alarm"):
-            send_to_wokwi("internal_alarm", "on")
-            st.success("Internal alarm activated!")
+        if st.button("Activar Alarma Interna"):
+            enviar_a_wokwi("alarma_interna", "encender")
+            st.success("¡Alarma interna activada!")
     with col2:
-        if st.button("Deactivate Internal Alarm"):
-            send_to_wokwi("internal_alarm", "off")
-            st.success("Internal alarm deactivated!")
+        if st.button("Desactivar Alarma Interna"):
+            enviar_a_wokwi("alarma_interna", "apagar")
+            st.success("¡Alarma interna desactivada!")
     
-    # Living Room Light
-    st.header("Living Room Light")
+    # Luz de la Sala
+    st.header("Luz de la Sala")
     col3, col4 = st.columns(2)
     with col3:
-        if st.button("Turn On Light"):
-            send_to_wokwi("living_room_light", "on")
-            st.success("Living room light turned on!")
+        if st.button("Encender Luz"):
+            enviar_a_wokwi("luz_sala", "encender")
+            st.success("¡Luz de la sala encendida!")
     with col4:
-        if st.button("Turn Off Light"):
-            send_to_wokwi("living_room_light", "off")
-            st.success("Living room light turned off!")
+        if st.button("Apagar Luz"):
+            enviar_a_wokwi("luz_sala", "apagar")
+            st.success("¡Luz de la sala apagada!")
     
-    # Voice Command Simulation
-    st.header("Voice Command (Text Simulation)")
-    voice_command = st.text_input("Enter voice command (e.g., 'turn on light', 'activate alarm')")
-    if st.button("Execute Voice Command"):
-        command = voice_command.lower()
-        if command == "activate internal alarm":
-            send_to_wokwi("internal_alarm", "on")
-            st.success("Voice command: Internal alarm activated!")
-        elif command == "deactivate internal alarm":
-            send_to_wokwi("internal_alarm", "off")
-            st.success("Voice command: Internal alarm deactivated!")
-        elif command == "turn on light":
-            send_to_wokwi("living_room_light", "on")
-            st.success("Voice command: Living room light turned on!")
-        elif command == "turn off light":
-            send_to_wokwi("living_room_light", "off")
-            st.success("Voice command: Living room light turned off!")
+    # Simulación de Comando por Voz
+    st.header("Comando por Voz (Simulación por Texto)")
+    comando_voz = st.text_input("Ingresa el comando por voz (ej., 'encender luz', 'activar alarma')")
+    if st.button("Ejecutar Comando por Voz"):
+        comando = comando_voz.lower()
+        if comando == "activar alarma interna":
+            enviar_a_wokwi("alarma_interna", "encender")
+            st.success("Comando por voz: ¡Alarma interna activada!")
+        elif comando == "desactivar alarma interna":
+            enviar_a_wokwi("alarma_interna", "apagar")
+            st.success("Comando por voz: ¡Alarma interna desactivada!")
+        elif comando == "encender luz":
+            enviar_a_wokwi("luz_sala", "encender")
+            st.success("Comando por voz: ¡Luz de la sala encendida!")
+        elif comando == "apagar luz":
+            enviar_a_wokwi("luz_sala", "apagar")
+            st.success("Comando por voz: ¡Luz de la sala apagada!")
         else:
-            st.error("Unknown voice command")
+            st.error("Comando por voz desconocido")
