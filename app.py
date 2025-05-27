@@ -200,4 +200,4 @@ else:
     
     # Luz de la Sala (LED)
     st.header("Luz de la Sala")
-    st.markdown(f"<p class='status'>Estado actual: {st.session_state.estado_luz}</p>", unsafe_allow_html
+    st.markdown(f"<p class='status'>Estado actual: {st.session_state.estado_luz}</p>", unsafe_allow_html)
