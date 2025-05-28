@@ -5,7 +5,7 @@ import json
 # Configuración de la aplicación (DEBE SER EL PRIMER COMANDO DE STREAMLIT)
 st.set_page_config(page_title="Sistema de Control de Finca", layout="wide")
 
-# Inyectar CSS personalizado para centrar elementos y mejorar la apariencia
+# Inyectar CSS personalizado para centrar elementos
 st.markdown(
     """
     <style>
@@ -23,7 +23,7 @@ st.markdown(
         justify-content: center;
         align-items: center;
     }
-    /* Ajustar el ancho de los contenedores */
+    /* Ajustar el ancho de los contenedores para mejor apariencia */
     .stTextInput > div, .stSlider > div, .stRadio > div {
         width: 50%;
         max-width: 500px;
@@ -33,28 +33,16 @@ st.markdown(
         width: 100%;
         max-width: 500px;
         margin: auto;
-        background-color: #4CAF50;
-        color: white;
-        border-radius: 5px;
     }
     /* Centrar los encabezados */
     h1, h2, h3 {
         text-align: center;
-        color: #333;
     }
     /* Ajustar el contenedor principal */
     .main .block-container {
         max-width: 800px;
-        margin: 20px auto;
+        margin: 100px;
         padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    /* Estilo para estados */
-    .status {
-        font-size: 18px;
-        font-weight: bold;
-        color: #2e7d32;
     }
     </style>
     """,
@@ -62,14 +50,12 @@ st.markdown(
 )
 
 # Configuración de MQTT
-broker = "broker.hivemq.com"
+broker = "broker.hivemq.com"  # Public MQTT broker
 port = 1883
-client_id = f"Streamlit_FarmControl_{int(time.time())}"  # ID único para evitar conflictos
+client_id = "Streamlit_FarmControl"
 client = mqtt.Client(client_id)
 
 # Variables para almacenar el estado (para feedback visual)
-if "estado_puerta" not in st.session_state:
-    st.session_state.estado_puerta = "Cerrada"
 if "estado_cerca" not in st.session_state:
     st.session_state.estado_cerca = "Apagada"
 if "potencia_cerca" not in st.session_state:
@@ -80,22 +66,22 @@ if "estado_alarma_int" not in st.session_state:
     st.session_state.estado_alarma_int = "Apagada"
 if "estado_luz" not in st.session_state:
     st.session_state.estado_luz = "Apagada"
+if "estado_puerta" not in st.session_state:
+    st.session_state.estado_puerta = "Cerrada"
 
 # Conectar al broker MQTT
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         st.success("Conectado al broker MQTT")
+        # Suscribirse a topics de estado
         client.subscribe("farm/status/#")
     else:
-        st.error(f"Error de conexión al broker MQTT: {rc}")
+        st.error("Error de conexión al broker MQTT")
 
 def on_message(client, userdata, msg):
     topic = msg.topic
     payload = msg.payload.decode()
-    print(f"Mensaje recibido en {topic}: {payload}")  # Depuración
-    if topic == "farm/status/gate":
-        st.session_state.estado_puerta = "Abierta" if payload == "open" else "Cerrada"
-    elif topic == "farm/status/fence":
+    if topic == "farm/status/fence":
         st.session_state.estado_cerca = "Encendida" if payload == "on" else "Apagada"
     elif topic == "farm/status/fence_power":
         st.session_state.potencia_cerca = int(payload)
@@ -105,6 +91,8 @@ def on_message(client, userdata, msg):
         st.session_state.estado_alarma_int = "Encendida" if payload == "on" else "Apagada"
     elif topic == "farm/status/light":
         st.session_state.estado_luz = "Encendida" if payload == "on" else "Apagada"
+    elif topic == "farm/status/gate":
+        st.session_state.estado_puerta = "Abierta" if payload == "open" else "Cerrada"
 
 client.on_connect = on_connect
 client.on_message = on_message
@@ -118,46 +106,46 @@ pagina = st.sidebar.selectbox("Selecciona la Página de Control", ["Controles Ex
 if pagina == "Controles Externos":
     st.title("Controles Externos de la Finca")
     
-    # Puerta Principal (Servo)
+    # Puerta Principal
     st.header("Puerta Principal")
-    st.markdown(f"<p class='status'>Estado actual: {st.session_state.estado_puerta}</p>", unsafe_allow_html=True)
+    st.write(f"Estado actual: {st.session_state.estado_puerta}")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Abrir Puerta"):
             client.publish("farm/gate", "open")
-            st.success("¡Comando enviado: Puerta principal abierta!")
+            st.success("¡Puerta principal abierta!")
     with col2:
         if st.button("Cerrar Puerta"):
             client.publish("farm/gate", "close")
-            st.success("¡Comando enviado: Puerta principal cerrada!")
+            st.success("¡Puerta principal cerrada!")
     
-    # Cerca Eléctrica (LED PWM)
+    # Cerca Eléctrica
     st.header("Cerca Eléctrica")
-    st.markdown(f"<p class='status'>Estado actual: {st.session_state.estado_cerca}, Potencia: {st.session_state.potencia_cerca}%</p>", unsafe_allow_html=True)
+    st.write(f"Estado actual: {st.session_state.estado_cerca}, Potencia: {st.session_state.potencia_cerca}%")
     estado_cerca = st.radio("Estado de la Cerca", ["Encendida", "Apagada"], index=1 if st.session_state.estado_cerca == "Apagada" else 0)
-    potencia_cerca = st.slider("Potencia de la Cerca", 0, 100, st.session_state.potencia_cerca)
+    potencia_cerca = st.slider("Nivel de Potencia de la Cerca", 0, 100, st.session_state.potencia_cerca)
     if st.button("Aplicar Configuración de la Cerca"):
         accion = "on" if estado_cerca == "Encendida" else "off"
         client.publish("farm/fence", accion)
         client.publish("farm/fence_power", str(potencia_cerca))
-        st.success(f"¡Cerca eléctrica {accion}, potencia ajustada a {potencia_cerca}%!")
+        st.success(f"Cerca eléctrica {accion}, potencia ajustada a {potencia_cerca}%")
     
-    # Alarma Externa (Buzzer)
+    # Alarma Externa
     st.header("Alarma Externa")
-    st.markdown(f"<p class='status'>Estado actual: {st.session_state.estado_alarma_ext}</p>", unsafe_allow_html=True)
+    st.write(f"Estado actual: {st.session_state.estado_alarma_ext}")
     col3, col4 = st.columns(2)
     with col3:
         if st.button("Activar Alarma Externa"):
             client.publish("farm/ext_alarm", "on")
-            st.success("¡Comando enviado: Alarma externa activada!")
+            st.success("¡Alarma externa activada!")
     with col4:
         if st.button("Desactivar Alarma Externa"):
             client.publish("farm/ext_alarm", "off")
-            st.success("¡Comando enviado: Alarma externa desactivada!")
+            st.success("¡Alarma externa desactivada!")
     
     # Simulación de Comando por Voz
     st.header("Comando por Voz (Simulación por Texto)")
-    comando_voz = st.text_input("Ingresa el comando por voz (ej., 'abrir puerta', 'encender cerca')", key="voz_externa")
+    comando_voz = st.text_input("Ingresa el comando por voz (ej., 'abrir puerta', 'encender cerca')")
     if st.button("Ejecutar Comando por Voz"):
         comando = comando_voz.lower()
         if comando == "abrir puerta":
@@ -179,25 +167,56 @@ if pagina == "Controles Externos":
             client.publish("farm/ext_alarm", "off")
             st.success("Comando por voz: ¡Alarma externa desactivada!")
         else:
-            st.error("Comando por voz no reconocido. Prueba con 'abrir puerta', 'cerrar puerta', 'encender cerca', etc.")
+            st.error("Comando por voz desconocido")
 
 # Página de Controles Internos
 else:
     st.title("Controles Internos de la Finca")
     
-    # Alarma Interna (Buzzer)
+    # Alarma Interna
     st.header("Alarma Interna")
-    st.markdown(f"<p class='status'>Estado actual: {st.session_state.estado_alarma_int}</p>", unsafe_allow_html=True)
+    st.write(f"Estado actual: {st.session_state.estado_alarma_int}")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Activar Alarma Interna"):
             client.publish("farm/int_alarm", "on")
-            st.success("¡Comando enviado: Alarma interna activada!")
+            st.success("¡Alarma interna activada!")
     with col2:
         if st.button("Desactivar Alarma Interna"):
             client.publish("farm/int_alarm", "off")
-            st.success("¡Comando enviado: Alarma interna desactivada!")
+            st.success("¡Alarma interna desactivada!")
     
-    # Luz de la Sala (LED)
+    # Luz de la Sala
     st.header("Luz de la Sala")
-    st.markdown(f"<p class='status'>Estado actual: {st.session_state.estado_luz}</p>", unsafe_allow_html)
+    st.write(f"Estado actual: {st.session_state.estado_luz}")
+    col3, col4 = st.columns(2)
+    with col3:
+        if st.button("Encender Luz"):
+            client.publish("farm/light", "on")
+            st.success("¡Luz de la sala encendida!")
+    with col4:
+        if st.button("Apagar Luz"):
+            client.publish("farm/light", "off")
+            st.success("¡Luz de la sala apagada!")
+    
+    # Simulación de Comando por Voz
+    st.header("Comando por Voz (Simulación por Texto)")
+    comando_voz = st.text_input("Ingresa el comando por voz (ej., 'encender luz', 'activar alarma')")
+    if st.button("Ejecutar Comando por Voz"):
+        comando = comando_voz.lower()
+        if comando == "activar alarma interna":
+            client.publish("farm/int_alarm", "on")
+            st.success("Comando por voz: ¡Alarma interna activada!")
+        elif comando == "desactivar alarma interna":
+            client.publish("farm/int_alarm", "off")
+            st.success("Comando por voz: ¡Alarma interna desactivada!")
+        elif comando == "encender luz":
+            client.publish("farm/light", "on")
+            st.success("Comando por voz: ¡Luz de la sala encendida!")
+        elif comando == "apagar luz":
+            client.publish("farm/light", "off")
+            st.success("Comando por voz: ¡Luz de la sala apagada!")
+        else:
+            st.error("Comando por voz desconocido")
+
+client.loop_stop()
