@@ -1,7 +1,11 @@
 import streamlit as st
 import paho.mqtt.publish as publish
-import paho.mqtt.client as mqtt
+import time
 
+# Configuración de la aplicación
+st.set_page_config(page_title="Sistema de Control de Finca", layout="wide")
+
+# Configuración del broker MQTT
 BROKER = "broker.hivemq.com"
 TOPICOS = {
     "puerta_servo": "finca/puerta",
@@ -11,41 +15,62 @@ TOPICOS = {
     "luz_sala": "finca/luz"
 }
 
-# Función para publicar mensajes
+# Funcín para publicar por MQTT
 def enviar_a_wokwi(dispositivo, accion, valor=None):
     topico = TOPICOS.get(dispositivo)
     if not topico:
         st.error("Dispositivo no reconocido")
         return
     mensaje = accion if valor is None else f"{accion}:{valor}"
-    publish.single(topic=topico, payload=mensaje, hostname=BROKER)
-    st.success(f"✅ Enviado a {dispositivo}: {mensaje}")
+    try:
+        publish.single(topic=topico, payload=mensaje, hostname=BROKER)
+        st.success(f"✅ Enviado a {dispositivo}: {mensaje}")
+    except Exception as e:
+        st.error(f"❌ Error al enviar mensaje: {e}")
 
-# Mostrar estado MQTT
-st.markdown("### ⏳ Esperando respuesta del ESP32...")
+# CSS personalizado para centrar elementos
+st.markdown("""
+<style>
+.stButton, .stTextInput, .stSlider, .stRadio, .stMarkdown {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin: auto;
+}
+.stColumn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.stTextInput > div, .stSlider > div, .stRadio > div {
+    width: 50%;
+    max-width: 500px;
+    margin: auto;
+}
+.stButton > button{
+    width: 100%;
+    max-width: 500px;
+    margin: auto;
+}
+h1, h2, h3 {
+    text-align: center;
+}
+.main .block-container {
+    max-width: 800px;
+    margin: 100px auto;
+    padding: 20px;
+}
+</style>
+""", unsafe_allow_html=True)
 
-status_placeholder = st.empty()
+# Mensaje de estado
+st.info("⏳ Esperando respuesta del ESP32... Asegúrate de que esté encendido y conectado al mismo broker MQTT")
 
-def on_connect(client, userdata, flags, rc):
-    if rc == 0:
-        client.subscribe("finca/status")
-
-def on_message(client, userdata, msg):
-    if msg.topic == "finca/status":
-        status_placeholder.success(f"✅ Mensaje del ESP32: {msg.payload.decode()}")
-
-# Inicializar cliente MQTT solo una vez
-if 'mqtt_initialized' not in st.session_state:
-    client = mqtt.Client()
-    client.on_connect = on_connect
-    client.on_message = on_message
-    client.connect(BROKER, 1883, 60)
-    client.loop_start()
-    st.session_state['mqtt_initialized'] = True
-
-# Interfaz Streamlit
+# Selector lateral
 pagina = st.sidebar.selectbox("Selecciona la Página de Control", ["Controles Externos", "Controles Internos"])
 
+# CONTROLES EXTERNOS
 if pagina == "Controles Externos":
     st.title("Controles Externos de la Finca")
 
@@ -74,7 +99,27 @@ if pagina == "Controles Externos":
         if st.button("Desactivar Alarma Externa"):
             enviar_a_wokwi("alarma_externa", "apagar")
 
-elif pagina == "Controles Internos":
+    st.header("Comando por Voz (Texto Simulado)")
+    comando_voz = st.text_input("Ejemplo: abrir puerta, encender cerca, etc.")
+    if st.button("Ejecutar Comando por Voz"):
+        comando = comando_voz.lower()
+        if comando == "abrir puerta":
+            enviar_a_wokwi("puerta_servo", "abrir")
+        elif comando == "cerrar puerta":
+            enviar_a_wokwi("puerta_servo", "cerrar")
+        elif comando == "encender cerca":
+            enviar_a_wokwi("cerca_electrica", "encender", 50)
+        elif comando == "apagar cerca":
+            enviar_a_wokwi("cerca_electrica", "apagar")
+        elif comando == "activar alarma externa":
+            enviar_a_wokwi("alarma_externa", "encender")
+        elif comando == "desactivar alarma externa":
+            enviar_a_wokwi("alarma_externa", "apagar")
+        else:
+            st.error("Comando por voz desconocido")
+
+# CONTROLES INTERNOS
+else:
     st.title("Controles Internos de la Finca")
 
     st.header("Alarma Interna")
@@ -94,3 +139,18 @@ elif pagina == "Controles Internos":
     with col4:
         if st.button("Apagar Luz"):
             enviar_a_wokwi("luz_sala", "apagar")
+
+    st.header("Comando por Voz (Texto Simulado)")
+    comando_voz = st.text_input("Ejemplo: encender luz, activar alarma interna, etc.")
+    if st.button("Ejecutar Comando por Voz"):
+        comando = comando_voz.lower()
+        if comando == "activar alarma interna":
+            enviar_a_wokwi("alarma_interna", "encender")
+        elif comando == "desactivar alarma interna":
+            enviar_a_wokwi("alarma_interna", "apagar")
+        elif comando == "encender luz":
+            enviar_a_wokwi("luz_sala", "encender")
+        elif comando == "apagar luz":
+            enviar_a_wokwi("luz_sala", "apagar")
+        else:
+            st.error("Comando por voz desconocido")
